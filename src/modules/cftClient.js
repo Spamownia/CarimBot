@@ -4,19 +4,31 @@ const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
+console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje (' + process.env.CFTOOLS_API_KEY.substring(0, 15) + '...)' : '✗ BRAK'}`));
+console.log(chalk.blue(`CFTOOLS_API_SECRET: ${process.env.CFTOOLS_API_SECRET ? '✓ istnieje' : '✗ BRAK (to może być problem)'}`));
 
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
 
-const cftClient = new cftSDK.CFToolsClientBuilder()
-  .withCache()
-  .withCredentials(process.env.CFTOOLS_API_KEY, process.env.CFTOOLS_API_SECRET)
-  .build();
+// ==================== TWORZENIE KLIENTA ====================
+let cftClient;
+try {
+  cftClient = new cftSDK.CFToolsClientBuilder()
+    .withCache()
+    .withCredentials(
+      process.env.CFTOOLS_API_KEY,           // Application Key
+      process.env.CFTOOLS_API_SECRET || ''   // Secret (może być pusty w niektórych przypadkach)
+    )
+    .build();
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+} catch (err) {
+  console.error(chalk.red('[CFTCLIENT] BŁĄD przy tworzeniu klienta:'), err.message);
+  throw err;
+}
 
-// Opcja wyboru serwera w komendzie
+// ====================== OPCJA SERWERA ======================
 const requiredServerConfigCommandOption = {
   name: 'server',
   description: 'Wybierz serwer',
@@ -28,7 +40,6 @@ const requiredServerConfigCommandOption = {
   }))
 };
 
-// Poprawiona funkcja wyszukiwania serwera (po Server ID lub Cloud ID)
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
   console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
