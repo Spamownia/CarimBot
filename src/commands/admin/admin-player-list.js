@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const { 
   requiredServerConfigCommandOption, 
   getServerConfigCommandOptionValue,
-  cftClient   // ← Dodajemy import klienta
+  cftClient 
 } = require('../../modules/cftClient');
 const cftSDK = require('cftools-sdk');
 
@@ -12,18 +12,19 @@ const execute = async (interaction) => {
   console.log(chalk.magenta(`[COMMAND] /admin-player-list wywołana przez ${interaction.user.tag}`));
 
   try {
-    await interaction.deferReply();   // ważne – defer na początku
+    // 1. Defer reply JAK NAJSZYBCIEJ (to rozwiązuje Unknown Interaction)
+    await interaction.deferReply();
 
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
-    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME} (${serverCfg.CFTOOLS_SERVER_API_ID})`));
+    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla: ${serverCfg.NAME}`));
 
-    // POPRAWNE wywołanie
+    // 2. Wywołanie API
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
 
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} sesji graczy`));
+    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
@@ -47,10 +48,15 @@ const execute = async (interaction) => {
       .setTitle('❌ Błąd CFTools API')
       .setDescription(`**Szczegóły:** ${error.message || 'Nieznany błąd'}`);
 
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply({ embeds: [errEmbed] }).catch(console.error);
-    } else {
-      await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(console.error);
+    // Bezpieczna odpowiedź nawet jeśli interakcja wygasła
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ embeds: [errEmbed] });
+      } else {
+        await interaction.reply({ embeds: [errEmbed], ephemeral: true });
+      }
+    } catch (replyError) {
+      console.error(chalk.red('[REPLY ERROR] Nie udało się odpowiedzieć na interakcję'), replyError);
     }
   }
 };
