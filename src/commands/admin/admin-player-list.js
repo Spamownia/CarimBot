@@ -1,37 +1,39 @@
 // src/commands/admin/admin-player-list.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const chalk = require('chalk');
-const { requiredServerConfigCommandOption, getServerConfigCommandOptionValue } = require('../../modules/cftClient');
+const { 
+  requiredServerConfigCommandOption, 
+  getServerConfigCommandOptionValue,
+  cftClient   // ← Dodajemy import klienta
+} = require('../../modules/cftClient');
 const cftSDK = require('cftools-sdk');
 
 const execute = async (interaction) => {
   console.log(chalk.magenta(`[COMMAND] /admin-player-list wywołana przez ${interaction.user.tag}`));
 
   try {
-    // Defer reply na samym początku (żeby uniknąć Unknown Interaction)
-    await interaction.deferReply();
+    await interaction.deferReply();   // ważne – defer na początku
 
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
     console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME} (${serverCfg.CFTOOLS_SERVER_API_ID})`));
 
-    // POPRAWNE wywołanie – przez klienta, nie przez moduł!
+    // POPRAWNE wywołanie
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
 
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} aktywnych sesji graczy`));
-
-    const description = sessions.length > 0 
-      ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
-      : 'Brak graczy online na tym serwerze.';
+    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} sesji graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
       .setTitle(`👮 Admin Player List – ${serverCfg.NAME}`)
-      .setDescription(description)
-      .setTimestamp()
-      .setFooter({ text: `Łącznie graczy online: ${sessions.length}` });
+      .setDescription(
+        sessions.length 
+          ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
+          : 'Brak graczy online na tym serwerze.'
+      )
+      .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });
 
@@ -43,7 +45,7 @@ const execute = async (interaction) => {
     const errEmbed = new EmbedBuilder()
       .setColor(0xff0000)
       .setTitle('❌ Błąd CFTools API')
-      .setDescription(`**Szczegóły:** ${error.message || 'Nieznany błąd'}\n\nSprawdź logi Rendera.`);
+      .setDescription(`**Szczegóły:** ${error.message || 'Nieznany błąd'}`);
 
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [errEmbed] }).catch(console.error);
