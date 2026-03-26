@@ -2,7 +2,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const chalk = require('chalk');
 
-const { requiredServerConfigCommandOption, getServerConfigCommandOptionValue } = require('../../modules/cftClient');
+const { requiredServerConfigCommandOption, getServerConfigCommandOptionValue, cftClient } = require('../../modules/cftClient');
 const cftSDK = require('cftools-sdk');
 
 const execute = async (interaction) => {
@@ -11,16 +11,17 @@ const execute = async (interaction) => {
   try {
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
-    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
+    console.log(chalk.yellow(`[DEBUG] Server API ID: ${serverCfg.CFTOOLS_SERVER_API_ID}`));
+    console.log(chalk.yellow(`[DEBUG] Cloud ID (jeśli jest): ${serverCfg.CFTOOLS_CLOUD_ID || 'brak'}`));
 
-    // Poprawne wywołanie - używamy cftClient z modułu
-    const { cftClient } = require('../../modules/cftClient');   // dodajemy import cftClient
+    // === GŁÓWNE WYWOŁANIE API ===
+    console.log(chalk.blue(`[DEBUG] Wywołuję cftClient.listGameSessions...`));
 
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
 
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
+    console.log(chalk.green(`[DEBUG] Pobrano ${sessions.length} sesji graczy pomyślnie`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
@@ -34,15 +35,17 @@ const execute = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana pomyślnie`));
-
   } catch (error) {
-    console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error);
+    console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`));
+    console.error(chalk.red('Pełny błąd:'), error);
+    console.error(chalk.red('Nazwa błędu:'), error.name);
+    console.error(chalk.red('Wiadomość błędu:'), error.message);
+    console.error(chalk.red('Stack trace:'), error.stack);
 
     const errEmbed = new EmbedBuilder()
       .setColor(0xff0000)
-      .setTitle('❌ Błąd')
-      .setDescription(`**Szczegóły:** ${error.message}`);
+      .setTitle('❌ Błąd CFTools API')
+      .setDescription(`**Szczegóły:** ${error.message}\n\nSprawdź logi Rendera po więcej informacji.`);
 
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [errEmbed] });
