@@ -1,3 +1,4 @@
+// src/modules/cftClient.js
 require('dotenv').config();
 const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
@@ -8,11 +9,6 @@ const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
 
-const cftClient = new cftSDK.CFToolsClientBuilder()
-  .withCache()
-  .withCredentials(process.env.CFTOOLS_API_KEY, process.env.CFTOOLS_API_SECRET)
-  .build();
-
 const requiredServerConfigCommandOption = {
   name: 'server',
   description: 'Wybierz serwer',
@@ -22,9 +18,21 @@ const requiredServerConfigCommandOption = {
 };
 
 const getServerConfigCommandOptionValue = (interaction) => {
-  const value = interaction.options.getString('server');
-  const server = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
-  if (!server) throw new Error(`Nie znaleziono serwera: ${value}`);
+  let value = interaction.options.getString('server');
+
+  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
+
+  const server = serverConfig.find(s => 
+    s.CFTOOLS_SERVER_API_ID === value || 
+    s.CFTOOLS_CLOUD_ID === value
+  );
+
+  if (!server) {
+    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla: ${value}`));
+    throw new Error(`Nie znaleziono serwera: ${value}`);
+  }
+
+  console.log(chalk.green(`[CFTCLIENT] Wybrano serwer: ${server.NAME}`));
   return server;
 };
 
