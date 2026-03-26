@@ -4,28 +4,41 @@ const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
-console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje (' + process.env.CFTOOLS_API_KEY.substring(0, 15) + '...)' : '✗ BRAK'}`));
-console.log(chalk.blue(`CFTOOLS_API_SECRET: ${process.env.CFTOOLS_API_SECRET ? '✓ istnieje' : '✗ BRAK (to może być problem)'}`));
+console.log(chalk.blue(`CFTOOLS_API_KEY istnieje: ${!!process.env.CFTOOLS_API_KEY}`));
 
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
 
-// ==================== TWORZENIE KLIENTA ====================
+// ==================== TWORZENIE KLIENTA - alternatywny sposób ====================
 let cftClient;
+
 try {
+  // Sposób 1: Standardowy (Application Key + Secret)
   cftClient = new cftSDK.CFToolsClientBuilder()
     .withCache()
     .withCredentials(
-      process.env.CFTOOLS_API_KEY,           // Application Key
-      process.env.CFTOOLS_API_SECRET || ''   // Secret (może być pusty w niektórych przypadkach)
+      process.env.CFTOOLS_API_KEY,
+      process.env.CFTOOLS_API_SECRET || ''
     )
     .build();
 
-  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (metoda 1)'));
 } catch (err) {
-  console.error(chalk.red('[CFTCLIENT] BŁĄD przy tworzeniu klienta:'), err.message);
-  throw err;
+  console.error(chalk.red('[CFTCLIENT] Błąd metody 1:'), err.message);
+
+  try {
+    // Sposób 2: Tylko z API Key (dla niektórych kluczy Game Plugins)
+    cftClient = new cftSDK.CFToolsClientBuilder()
+      .withCache()
+      .withCredentials(process.env.CFTOOLS_API_KEY)
+      .build();
+
+    console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (metoda 2 - tylko API Key)'));
+  } catch (err2) {
+    console.error(chalk.red('[CFTCLIENT] Błąd metody 2:'), err2.message);
+    throw new Error('Nie udało się utworzyć klienta CFTools - sprawdź API Key');
+  }
 }
 
 // ====================== OPCJA SERWERA ======================
