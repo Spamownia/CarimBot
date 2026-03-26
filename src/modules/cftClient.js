@@ -4,41 +4,26 @@ const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
-console.log(chalk.blue(`CFTOOLS_API_KEY istnieje: ${!!process.env.CFTOOLS_API_KEY}`));
+console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje' : '✗ BRAK'}`));
 
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
 
-// ==================== TWORZENIE KLIENTA - alternatywny sposób ====================
+// ==================== TWORZENIE KLIENTA - WERSJA DLA GAME PLUGINS ====================
 let cftClient;
 
 try {
-  // Sposób 1: Standardowy (Application Key + Secret)
+  // Metoda dla kluczy Game Plugins / RCON (najczęściej działa z tym typem klucza)
   cftClient = new cftSDK.CFToolsClientBuilder()
     .withCache()
-    .withCredentials(
-      process.env.CFTOOLS_API_KEY,
-      process.env.CFTOOLS_API_SECRET || ''
-    )
+    .withCredentials(process.env.CFTOOLS_API_KEY)   // tylko jeden parametr
     .build();
 
-  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (metoda 1)'));
+  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany (tryb Game Plugins)'));
 } catch (err) {
-  console.error(chalk.red('[CFTCLIENT] Błąd metody 1:'), err.message);
-
-  try {
-    // Sposób 2: Tylko z API Key (dla niektórych kluczy Game Plugins)
-    cftClient = new cftSDK.CFToolsClientBuilder()
-      .withCache()
-      .withCredentials(process.env.CFTOOLS_API_KEY)
-      .build();
-
-    console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (metoda 2 - tylko API Key)'));
-  } catch (err2) {
-    console.error(chalk.red('[CFTCLIENT] Błąd metody 2:'), err2.message);
-    throw new Error('Nie udało się utworzyć klienta CFTools - sprawdź API Key');
-  }
+  console.error(chalk.red('[CFTCLIENT] Błąd tworzenia klienta:'), err.message);
+  throw err;
 }
 
 // ====================== OPCJA SERWERA ======================
