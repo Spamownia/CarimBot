@@ -8,8 +8,8 @@ console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY;
 const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET;
 
-console.log(chalk.blue(`APP_ID / KEY istnieje: ${!!APP_ID}`));
-console.log(chalk.blue(`SECRET istnieje: ${!!SECRET}`));
+console.log(chalk.blue(`APP_ID / KEY: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
 
 const serverConfig = require('../../config/servers');
 
@@ -39,13 +39,13 @@ const requiredServerConfigCommandOption = {
 
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
-  console.log(chalk.magenta(`[CFTCLIENT] Użytkownik wybrał serwer o ID: ${value}`));
+  console.log(chalk.magenta(`[CFTCLIENT] Użytkownik wybrał ID serwera: ${value}`));
 
   const serverCfg = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
 
   if (!serverCfg) {
     console.error(chalk.red(`[CFTCLIENT] NIE ZNALEZIONO serwera dla ID: ${value}`));
-    console.error(chalk.red(`Dostępne serwery: ${serverConfig.map(s => s.CFTOOLS_SERVER_API_ID).join(', ')}`));
+    console.error(chalk.red(`Dostępne serwery: ${serverConfig.map(s => s.CFTOOLS_SERVER_API_ID).join(' | ')}`));
     throw new Error(`Nie znaleziono serwera: ${value}`);
   }
 
