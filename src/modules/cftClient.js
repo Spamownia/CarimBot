@@ -18,21 +18,21 @@ const requiredServerConfigCommandOption = {
 };
 
 const getServerConfigCommandOptionValue = (interaction) => {
-  let value = interaction.options.getString('server');
+  const value = interaction.options.getString('server');
+  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość z Discord: ${value}`));
 
-  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
-
+  // Szukamy po Server ID lub Cloud ID
   const server = serverConfig.find(s => 
     s.CFTOOLS_SERVER_API_ID === value || 
     s.CFTOOLS_CLOUD_ID === value
   );
 
   if (!server) {
-    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla: ${value}`));
+    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla wartości: ${value}`));
     throw new Error(`Nie znaleziono serwera: ${value}`);
   }
 
-  console.log(chalk.green(`[CFTCLIENT] Wybrano serwer: ${server.NAME}`));
+  console.log(chalk.green(`[CFTCLIENT] Znaleziono serwer: ${server.NAME}`));
   return server;
 };
 
