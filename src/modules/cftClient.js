@@ -4,35 +4,19 @@ const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
-console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje' : '✗ BRAK'}`));
-console.log(chalk.blue(`CFTOOLS_API_SECRET: ${process.env.CFTOOLS_API_SECRET ? '✓ istnieje' : '✗ BRAK'}`));
 
 const serverConfig = require('../../config/servers');
 
-console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów:`));
-serverConfig.forEach((s, i) => {
-  console.log(chalk.green(`  ${i+1}. ${s.NAME} | ServerID: ${s.CFTOOLS_SERVER_API_ID}`));
-});
+console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
 
-// ==================== TWORZENIE KLIENTA CFTools ====================
-let cftClient;
+const cftClient = new cftSDK.CFToolsClientBuilder()
+  .withCache()
+  .withCredentials(process.env.CFTOOLS_API_KEY, process.env.CFTOOLS_API_SECRET)
+  .build();
 
-try {
-  cftClient = new cftSDK.CFToolsClientBuilder()
-    .withCache()
-    .withCredentials(
-      process.env.CFTOOLS_API_KEY,        // Application Key / API Key
-      process.env.CFTOOLS_API_SECRET      // Secret
-    )
-    .build();
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
 
-  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
-} catch (err) {
-  console.error(chalk.red('[CFTCLIENT] Błąd podczas tworzenia klienta:'), err.message);
-  throw err;
-}
-
-// ====================== OPCJA SERWERA ======================
+// Opcja wyboru serwera w komendzie
 const requiredServerConfigCommandOption = {
   name: 'server',
   description: 'Wybierz serwer',
@@ -44,13 +28,14 @@ const requiredServerConfigCommandOption = {
   }))
 };
 
-// ====================== POBIERANIE SERWERA ======================
+// Poprawiona funkcja wyszukiwania serwera (po Server ID lub Cloud ID)
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
   console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
 
   const server = serverConfig.find(s => 
-    s.CFTOOLS_SERVER_API_ID === value
+    s.CFTOOLS_SERVER_API_ID === value || 
+    s.CFTOOLS_CLOUD_ID === value
   );
 
   if (!server) {
@@ -62,9 +47,8 @@ const getServerConfigCommandOptionValue = (interaction) => {
   return server;
 };
 
-// ====================== EXPORT ======================
 module.exports = {
-  cftClient,                          // ← musi być eksportowany
+  cftClient,
   requiredServerConfigCommandOption,
   getServerConfigCommandOptionValue
 };
