@@ -3,28 +3,34 @@ require('dotenv').config();
 const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
-// ==================== DEBUG INICJALIZACJI ====================
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
-console.log(chalk.blue(`CFTOOLS_API_KEY istnieje: ${!!process.env.CFTOOLS_API_KEY}`));
-console.log(chalk.blue(`CFTOOLS_API_SECRET istnieje: ${!!process.env.CFTOOLS_API_SECRET}`));
+console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje' : '✗ BRAK'}`));
+console.log(chalk.blue(`CFTOOLS_API_SECRET: ${process.env.CFTOOLS_API_SECRET ? '✓ istnieje' : '✗ BRAK'}`));
 
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów:`));
 serverConfig.forEach((s, i) => {
-  console.log(chalk.green(`  ${i+1}. ${s.NAME} | ServerID: ${s.CFTOOLS_SERVER_API_ID || 'BRAK'}`));
+  console.log(chalk.green(`  ${i+1}. ${s.NAME} | ServerID: ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// Tworzenie klienta CFTools
-const cftClient = new cftSDK.CFToolsClientBuilder()
-  .withCache()
-  .withCredentials(
-    process.env.CFTOOLS_API_KEY || process.env.CFTOOLS_API_APPLICATION_ID,
-    process.env.CFTOOLS_API_SECRET
-  )
-  .build();
+// ==================== TWORZENIE KLIENTA CFTools ====================
+let cftClient;
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+try {
+  cftClient = new cftSDK.CFToolsClientBuilder()
+    .withCache()
+    .withCredentials(
+      process.env.CFTOOLS_API_KEY,        // Application Key / API Key
+      process.env.CFTOOLS_API_SECRET      // Secret
+    )
+    .build();
+
+  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+} catch (err) {
+  console.error(chalk.red('[CFTCLIENT] Błąd podczas tworzenia klienta:'), err.message);
+  throw err;
+}
 
 // ====================== OPCJA SERWERA ======================
 const requiredServerConfigCommandOption = {
@@ -41,16 +47,14 @@ const requiredServerConfigCommandOption = {
 // ====================== POBIERANIE SERWERA ======================
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
-  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość z Discord: ${value}`));
+  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
 
-  // Szukamy po Server ID lub Cloud ID (na wszelki wypadek)
   const server = serverConfig.find(s => 
-    s.CFTOOLS_SERVER_API_ID === value || 
-    (s.CFTOOLS_CLOUD_ID && s.CFTOOLS_CLOUD_ID === value)
+    s.CFTOOLS_SERVER_API_ID === value
   );
 
   if (!server) {
-    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla wartości: ${value}`));
+    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla: ${value}`));
     throw new Error(`Nie znaleziono serwera: ${value}`);
   }
 
@@ -60,7 +64,7 @@ const getServerConfigCommandOptionValue = (interaction) => {
 
 // ====================== EXPORT ======================
 module.exports = {
-  cftClient,                          // ← WAŻNE: eksportujemy klienta!
+  cftClient,                          // ← musi być eksportowany
   requiredServerConfigCommandOption,
   getServerConfigCommandOptionValue
 };
