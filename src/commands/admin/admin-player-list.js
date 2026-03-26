@@ -1,3 +1,4 @@
+// src/commands/admin/admin-player-list.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const chalk = require('chalk');
 
@@ -5,14 +6,21 @@ const { requiredServerConfigCommandOption, getServerConfigCommandOptionValue } =
 const cftSDK = require('cftools-sdk');
 
 const execute = async (interaction) => {
-  console.log(chalk.magenta(`[COMMAND] /admin-player-list wywołana`));
+  console.log(chalk.magenta(`[COMMAND] /admin-player-list wywołana przez ${interaction.user.tag}`));
 
   try {
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
-    const sessions = await cftSDK.listGameSessions({
+    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
+
+    // Poprawne wywołanie - używamy cftClient z modułu
+    const { cftClient } = require('../../modules/cftClient');   // dodajemy import cftClient
+
+    const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
+
+    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
@@ -20,19 +28,21 @@ const execute = async (interaction) => {
       .setDescription(
         sessions.length
           ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
-          : 'Brak graczy online.'
+          : 'Brak graczy online na tym serwerze.'
       )
       .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });
-    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana`));
+
+    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana pomyślnie`));
+
   } catch (error) {
-    console.error(chalk.red('[COMMAND ERROR]'), error);
+    console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error);
 
     const errEmbed = new EmbedBuilder()
       .setColor(0xff0000)
       .setTitle('❌ Błąd')
-      .setDescription(error.message);
+      .setDescription(`**Szczegóły:** ${error.message}`);
 
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [errEmbed] });
