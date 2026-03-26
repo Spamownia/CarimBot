@@ -4,56 +4,48 @@ const cftSDK = require('cftools-sdk');
 const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
-console.log(chalk.blue(`CFTOOLS_API_KEY: ${process.env.CFTOOLS_API_KEY ? '✓ istnieje' : '✗ BRAK'}`));
+
+const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_APPLICATION_ID || process.env.CFTOOLS_API_KEY;
+const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET;
+
+console.log(chalk.blue(`APP_ID istnieje: ${!!APP_ID}`));
+console.log(chalk.blue(`SECRET istnieje: ${!!SECRET}`));
+
+if (!APP_ID || !SECRET) {
+  console.error(chalk.red('[CFTCLIENT] BRAK KLUCZY uwierzytelniających! Dodaj CFTOOLS_APP_ID i CFTOOLS_SECRET w Environment Variables.'));
+}
 
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów`));
+serverConfig.forEach((s, i) => {
+  console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
+});
 
-// ==================== TWORZENIE KLIENTA - WERSJA DLA GAME PLUGINS ====================
-let cftClient;
+// Poprawna inicjalizacja dla CFTools Cloud (Game Plugins)
+const cftClient = new cftSDK.CFToolsClientBuilder()
+  .withCache()
+  .withCredentials(APP_ID, SECRET)     // <--- najważniejsze
+  .build();
 
-try {
-  // Metoda dla kluczy Game Plugins / RCON (najczęściej działa z tym typem klucza)
-  cftClient = new cftSDK.CFToolsClientBuilder()
-    .withCache()
-    .withCredentials(process.env.CFTOOLS_API_KEY)   // tylko jeden parametr
-    .build();
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
 
-  console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany (tryb Game Plugins)'));
-} catch (err) {
-  console.error(chalk.red('[CFTCLIENT] Błąd tworzenia klienta:'), err.message);
-  throw err;
-}
-
-// ====================== OPCJA SERWERA ======================
 const requiredServerConfigCommandOption = {
   name: 'server',
   description: 'Wybierz serwer',
   type: 3,
   required: true,
-  choices: serverConfig.map(s => ({
-    name: s.NAME,
-    value: s.CFTOOLS_SERVER_API_ID
-  }))
+  choices: serverConfig.map(s => ({ name: s.NAME, value: s.CFTOOLS_SERVER_API_ID }))
 };
 
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
-  console.log(chalk.magenta(`[CFTCLIENT] Otrzymano wartość: ${value}`));
+  const serverCfg = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
 
-  const server = serverConfig.find(s => 
-    s.CFTOOLS_SERVER_API_ID === value || 
-    s.CFTOOLS_CLOUD_ID === value
-  );
+  if (!serverCfg) throw new Error(`Nie znaleziono serwera: ${value}`);
 
-  if (!server) {
-    console.error(chalk.red(`[CFTCLIENT] Nie znaleziono serwera dla: ${value}`));
-    throw new Error(`Nie znaleziono serwera: ${value}`);
-  }
-
-  console.log(chalk.green(`[CFTCLIENT] Wybrano serwer: ${server.NAME}`));
-  return server;
+  console.log(chalk.green(`[CFTCLIENT] Wybrano serwer: ${serverCfg.NAME}`));
+  return serverCfg;
 };
 
 module.exports = {
