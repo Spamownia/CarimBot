@@ -5,17 +5,14 @@ const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 
-// Najważniejsze: używamy poprawnych nazw zmiennych dla CFTools Cloud
-const credentials = {
-  appId: process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY,
-  secret: process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET
-};
+const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY;
+const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET;
 
-console.log(chalk.blue(`APP_ID / KEY: ${!!credentials.appId ? '✓ istnieje' : '✗ brak'}`));
-console.log(chalk.blue(`SECRET: ${!!credentials.secret ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`APP_ID / KEY: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
 
-if (!credentials.appId || !credentials.secret) {
-  console.error(chalk.red('[CFTCLIENT] BRAK poprawnych kluczy do CFTools!'));
+if (!APP_ID || !SECRET) {
+  console.error(chalk.red('[CFTCLIENT] BRAK KLUCZY! Dodaj CFTOOLS_APP_ID i CFTOOLS_SECRET w Environment Variables.'));
 }
 
 const serverConfig = require('../../config/servers');
@@ -25,10 +22,13 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// Poprawna inicjalizacja dla aktualnej wersji cftools-sdk
-const cftClient = new cftSDK.CFToolsClient(credentials.appId, credentials.secret);
+// Poprawna inicjalizacja dla cftools-sdk v3+
+const cftClient = new cftSDK.CFToolsClientBuilder()
+  .withCache()
+  .withCredentials(APP_ID, SECRET)
+  .build();
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools utworzony pomyślnie (używamy CFToolsClient bezpośrednio)'));
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (używamy Builder)'));
 
 const requiredServerConfigCommandOption = {
   name: 'server',
@@ -48,7 +48,7 @@ const getServerConfigCommandOptionValue = (interaction) => {
   const serverCfg = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
 
   if (!serverCfg) {
-    console.error(chalk.red(`[CFTCLIENT] NIE ZNALEZIONO serwera: ${value}`));
+    console.error(chalk.red(`[CFTCLIENT] NIE ZNALEZIONO serwera dla ID: ${value}`));
     throw new Error(`Nie znaleziono serwera: ${value}`);
   }
 
