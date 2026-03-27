@@ -11,10 +11,6 @@ const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET;
 console.log(chalk.blue(`APP_ID / KEY: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
 console.log(chalk.blue(`SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
 
-if (!APP_ID || !SECRET) {
-  console.error(chalk.red('[CFTCLIENT] BRAK KLUCZY! Dodaj CFTOOLS_APP_ID i CFTOOLS_SECRET w Environment Variables.'));
-}
-
 const serverConfig = require('../../config/servers');
 
 console.log(chalk.green(`[CFTCLIENT] Załadowano ${serverConfig.length} serwerów:`));
@@ -22,13 +18,13 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// Poprawna inicjalizacja dla cftools-sdk v3+
+// === NAJWAŻNIEJSZA POPRAWKA ===
 const cftClient = new cftSDK.CFToolsClientBuilder()
   .withCache()
   .withCredentials(APP_ID, SECRET)
   .build();
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (używamy Builder)'));
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (Builder)'));
 
 const requiredServerConfigCommandOption = {
   name: 'server',
