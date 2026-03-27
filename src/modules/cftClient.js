@@ -5,13 +5,17 @@ const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 
-// Priorytet: CFTOOLS_APP_ID > CFTOOLS_API_KEY
-const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY;
-const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET || process.env.CFTOOLS_API_KEY;
+const APP_ID = process.env.CFTOOLS_APP_ID?.trim();
+const SECRET = process.env.CFTOOLS_SECRET?.trim();
 
-console.log(chalk.blue(`Używany APP_ID (długość): ${APP_ID ? APP_ID.length : 0}`));
-console.log(chalk.blue(`Używany SECRET (długość): ${SECRET ? SECRET.length : 0}`));
+console.log(chalk.blue(`CFTOOLS_APP_ID (długość): ${APP_ID ? APP_ID.length : 0}`));
+console.log(chalk.blue(`CFTOOLS_SECRET (długość): ${SECRET ? SECRET.length : 0}`));
 console.log(chalk.blue(`APP_ID zaczyna się od: ${APP_ID ? APP_ID.substring(0, 8) : 'BRAK'}...`));
+
+if (!APP_ID || !SECRET) {
+  console.error(chalk.red('[CFTCLIENT] BŁĄD: Brak CFTOOLS_APP_ID lub CFTOOLS_SECRET!'));
+  console.error(chalk.red('Dodaj je w Environment Variables na Renderze.'));
+}
 
 const serverConfig = require('../../config/servers');
 
