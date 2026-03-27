@@ -22,15 +22,13 @@ const execute = async (interaction) => {
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
 
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
-
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
       .setTitle(`👮 Admin Player List – ${serverCfg.NAME}`)
       .setDescription(
         sessions.length 
           ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
-          : 'Brak graczy online na tym serwerze.'
+          : 'Brak graczy online.'
       )
       .setTimestamp();
 
@@ -48,8 +46,6 @@ const execute = async (interaction) => {
 
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [errEmbed] }).catch(() => {});
-    } else {
-      await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
     }
   }
 };
