@@ -5,11 +5,15 @@ const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 
-const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY;
-const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET;
+const APP_ID = process.env.CFTOOLS_APP_ID;
+const SECRET = process.env.CFTOOLS_SECRET;
 
-console.log(chalk.blue(`APP_ID / KEY: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
-console.log(chalk.blue(`SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`CFTOOLS_APP_ID: ${!!APP_ID ? '✓ istnieje' : '✗ BRAK'}`));
+console.log(chalk.blue(`CFTOOLS_SECRET: ${!!SECRET ? '✓ istnieje' : '✗ BRAK'}`));
+
+if (!APP_ID || !SECRET) {
+  console.error(chalk.red('[CFTCLIENT] BŁĄD: Brak CFTOOLS_APP_ID lub CFTOOLS_SECRET w Environment Variables!'));
+}
 
 const serverConfig = require('../../config/servers');
 
@@ -23,7 +27,7 @@ const cftClient = new cftSDK.CFToolsClientBuilder()
   .withCredentials(APP_ID, SECRET)
   .build();
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie (Builder)'));
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
 
 const requiredServerConfigCommandOption = {
   name: 'server',
@@ -38,7 +42,7 @@ const requiredServerConfigCommandOption = {
 
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
-  console.log(chalk.magenta(`[CFTCLIENT] Wybrano ID serwera: ${value}`));
+  console.log(chalk.magenta(`[CFTCLIENT] Wybrano serwer ID: ${value}`));
 
   const serverCfg = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
 
