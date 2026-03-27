@@ -5,11 +5,13 @@ const chalk = require('chalk');
 
 console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 
-const APP_ID = process.env.CFTOOLS_APP_ID;
-const SECRET = process.env.CFTOOLS_SECRET;
+// Priorytet: CFTOOLS_APP_ID > CFTOOLS_API_KEY
+const APP_ID = process.env.CFTOOLS_APP_ID || process.env.CFTOOLS_API_KEY;
+const SECRET = process.env.CFTOOLS_SECRET || process.env.CFTOOLS_API_SECRET || process.env.CFTOOLS_API_KEY;
 
-console.log(chalk.blue(`CFTOOLS_APP_ID: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
-console.log(chalk.blue(`CFTOOLS_SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`Używany APP_ID (długość): ${APP_ID ? APP_ID.length : 0}`));
+console.log(chalk.blue(`Używany SECRET (długość): ${SECRET ? SECRET.length : 0}`));
+console.log(chalk.blue(`APP_ID zaczyna się od: ${APP_ID ? APP_ID.substring(0, 8) : 'BRAK'}...`));
 
 const serverConfig = require('../../config/servers');
 
@@ -18,7 +20,6 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// Poprawna inicjalizacja – tylko przez Builder (działa w aktualnej wersji SDK)
 const cftClient = new cftSDK.CFToolsClientBuilder()
   .withCache()
   .withCredentials(APP_ID, SECRET)
