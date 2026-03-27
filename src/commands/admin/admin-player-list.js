@@ -12,14 +12,12 @@ const execute = async (interaction) => {
   console.log(chalk.magenta(`[COMMAND] /admin-player-list wywołana przez ${interaction.user.tag}`));
 
   try {
-    // 1. Defer reply JAK NAJSZYBCIEJ (to rozwiązuje Unknown Interaction)
     await interaction.deferReply();
 
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
     console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla: ${serverCfg.NAME}`));
 
-    // 2. Wywołanie API
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
@@ -48,20 +46,14 @@ const execute = async (interaction) => {
       .setTitle('❌ Błąd CFTools API')
       .setDescription(`**Szczegóły:** ${error.message || 'Nieznany błąd'}`);
 
-    // Bezpieczna odpowiedź nawet jeśli interakcja wygasła
-    try {
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ embeds: [errEmbed] });
-      } else {
-        await interaction.reply({ embeds: [errEmbed], ephemeral: true });
-      }
-    } catch (replyError) {
-      console.error(chalk.red('[REPLY ERROR] Nie udało się odpowiedzieć na interakcję'), replyError);
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ embeds: [errEmbed] }).catch(() => {});
+    } else {
+      await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
     }
   }
 };
 
-// Ładowanie komendy
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
     .setName('admin-player-list')
