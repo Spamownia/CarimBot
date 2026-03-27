@@ -18,7 +18,6 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// === NAJWAŻNIEJSZA POPRAWKA ===
 const cftClient = new cftSDK.CFToolsClientBuilder()
   .withCache()
   .withCredentials(APP_ID, SECRET)
@@ -39,7 +38,7 @@ const requiredServerConfigCommandOption = {
 
 const getServerConfigCommandOptionValue = (interaction) => {
   const value = interaction.options.getString('server');
-  console.log(chalk.magenta(`[CFTCLIENT] Wybrano serwer ID: ${value}`));
+  console.log(chalk.magenta(`[CFTCLIENT] Wybrano ID serwera: ${value}`));
 
   const serverCfg = serverConfig.find(s => s.CFTOOLS_SERVER_API_ID === value);
 
