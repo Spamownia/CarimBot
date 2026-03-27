@@ -18,10 +18,13 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-// === NAJWAŻNIEJSZA ZMIANA – używamy starszej, ale stabilnej metody inicjalizacji ===
-const cftClient = new cftSDK.CFToolsClient(APP_ID, SECRET);
+// Poprawna inicjalizacja – tylko przez Builder (działa w aktualnej wersji SDK)
+const cftClient = new cftSDK.CFToolsClientBuilder()
+  .withCache()
+  .withCredentials(APP_ID, SECRET)
+  .build();
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools utworzony (bez Builder) – metoda bezpośrednia'));
+console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
 
 const requiredServerConfigCommandOption = {
   name: 'server',
