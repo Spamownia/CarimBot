@@ -18,10 +18,12 @@ const execute = async (interaction) => {
 
     console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
 
-    // Poprawne wywołanie dla aktualnej wersji cftools-sdk
-    const sessions = await cftClient.listGameSessions({
+    // Poprawiona metoda – używamy listSessions zamiast listGameSessions
+    const sessions = await cftClient.listSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
+
+    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} sesji graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
