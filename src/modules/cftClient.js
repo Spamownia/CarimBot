@@ -8,12 +8,8 @@ console.log(chalk.blue('=== [CFTCLIENT] Inicjalizacja modułu ==='));
 const APP_ID = process.env.CFTOOLS_APP_ID;
 const SECRET = process.env.CFTOOLS_SECRET;
 
-console.log(chalk.blue(`CFTOOLS_APP_ID: ${!!APP_ID ? '✓ istnieje' : '✗ BRAK'}`));
-console.log(chalk.blue(`CFTOOLS_SECRET: ${!!SECRET ? '✓ istnieje' : '✗ BRAK'}`));
-
-if (!APP_ID || !SECRET) {
-  console.error(chalk.red('[CFTCLIENT] BŁĄD: Brak CFTOOLS_APP_ID lub CFTOOLS_SECRET w Environment Variables!'));
-}
+console.log(chalk.blue(`CFTOOLS_APP_ID: ${!!APP_ID ? '✓ istnieje' : '✗ brak'}`));
+console.log(chalk.blue(`CFTOOLS_SECRET: ${!!SECRET ? '✓ istnieje' : '✗ brak'}`));
 
 const serverConfig = require('../../config/servers');
 
@@ -22,12 +18,10 @@ serverConfig.forEach((s, i) => {
   console.log(chalk.green(`  ${i+1}. ${s.NAME} → ${s.CFTOOLS_SERVER_API_ID}`));
 });
 
-const cftClient = new cftSDK.CFToolsClientBuilder()
-  .withCache()
-  .withCredentials(APP_ID, SECRET)
-  .build();
+// === NAJWAŻNIEJSZA ZMIANA – używamy starszej, ale stabilnej metody inicjalizacji ===
+const cftClient = new cftSDK.CFToolsClient(APP_ID, SECRET);
 
-console.log(chalk.green('[CFTCLIENT] Klient CFTools zbudowany pomyślnie'));
+console.log(chalk.green('[CFTCLIENT] Klient CFTools utworzony (bez Builder) – metoda bezpośrednia'));
 
 const requiredServerConfigCommandOption = {
   name: 'server',
