@@ -16,8 +16,9 @@ const execute = async (interaction) => {
 
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
-    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla: ${serverCfg.NAME}`));
+    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
 
+    // Poprawne wywołanie dla aktualnej wersji cftools-sdk
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
@@ -28,7 +29,7 @@ const execute = async (interaction) => {
       .setDescription(
         sessions.length 
           ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
-          : 'Brak graczy online.'
+          : 'Brak graczy online na tym serwerze.'
       )
       .setTimestamp();
 
