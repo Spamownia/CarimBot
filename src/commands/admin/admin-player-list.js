@@ -18,19 +18,19 @@ const execute = async (interaction) => {
 
     console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
 
-    // Poprawiona metoda – używamy listSessions zamiast listGameSessions
-    const sessions = await cftClient.listSessions({
+    // Poprawiona metoda – najbardziej stabilna w aktualnym cftools-sdk
+    const players = await cftClient.getGameServerPlayers({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
 
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} sesji graczy`));
+    console.log(chalk.green(`[COMMAND] Pobrano ${players.length} graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
       .setTitle(`👮 Admin Player List – ${serverCfg.NAME}`)
       .setDescription(
-        sessions.length 
-          ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
+        players.length 
+          ? players.map((p, i) => `${i + 1}. **${p.name || 'Nieznany'}** (${p.id})`).join('\n')
           : 'Brak graczy online na tym serwerze.'
       )
       .setTimestamp();
