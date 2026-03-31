@@ -36,6 +36,8 @@ const execute = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
+    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana pomyślnie`));
+
   } catch (error) {
     console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error.message || error);
 
@@ -50,10 +52,10 @@ const execute = async (interaction) => {
   }
 };
 
-// === OBOWIĄZKOWA FUNKCJA LOAD ===
+// === POPRAWNA FUNKCJA LOAD ===
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
-    .setName('admin-player-list')
+    .setName('admin-player-list')           // <--- nazwa musi być dokładnie taka
     .setDescription('Pokazuje aktualną listę graczy online')
     .setDMPermission(false)
     .addStringOption(option => {
