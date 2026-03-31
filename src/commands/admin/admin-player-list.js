@@ -1,11 +1,14 @@
 // src/commands/admin/admin-player-list.js
+
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const chalk = require('chalk');
+
 const { 
   requiredServerConfigCommandOption, 
   getServerConfigCommandOptionValue,
   cftClient 
 } = require('../../modules/cftClient');
+
 const cftSDK = require('cftools-sdk');
 
 const execute = async (interaction) => {
@@ -21,8 +24,6 @@ const execute = async (interaction) => {
     const sessions = await cftClient.listGameSessions({
       serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
     });
-
-    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
@@ -52,7 +53,7 @@ const execute = async (interaction) => {
   }
 };
 
-// === WAŻNE: Funkcja load musi być zdefiniowana ===
+// === TO JEST NAJWAŻNIEJSZE – funkcja load musi być zdefiniowana ===
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
     .setName('admin-player-list')
