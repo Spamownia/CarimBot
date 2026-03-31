@@ -1,5 +1,4 @@
 // src/commands/admin/admin-player-list.js
-
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const chalk = require('chalk');
 
@@ -37,8 +36,6 @@ const execute = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana pomyślnie`));
-
   } catch (error) {
     console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error.message || error);
 
@@ -53,7 +50,7 @@ const execute = async (interaction) => {
   }
 };
 
-// === TO JEST NAJWAŻNIEJSZE – funkcja load musi być zdefiniowana ===
+// === OBOWIĄZKOWA FUNKCJA LOAD ===
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
     .setName('admin-player-list')
