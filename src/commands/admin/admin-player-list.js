@@ -52,7 +52,7 @@ const execute = async (interaction) => {
   }
 };
 
-// === WAŻNE: poprawna funkcja load ===
+// === WAŻNE: Funkcja load musi być zdefiniowana ===
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
     .setName('admin-player-list')
