@@ -16,27 +16,13 @@ const execute = async (interaction) => {
 
     const serverCfg = getServerConfigCommandOptionValue(interaction);
 
-    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla: ${serverCfg.NAME}`));
+    console.log(chalk.magenta(`[COMMAND] Pobieram graczy dla serwera: ${serverCfg.NAME}`));
 
-    let sessions = [];
+    const sessions = await cftClient.listGameSessions({
+      serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
+    });
 
-    try {
-      sessions = await cftClient.listGameSessions({
-        serverApiId: cftSDK.ServerApiId.of(serverCfg.CFTOOLS_SERVER_API_ID)
-      });
-      console.log(chalk.green(`[SUCCESS] listGameSessions zwróciło ${sessions.length} graczy`));
-    } catch (err) {
-      console.log(chalk.yellow(`[WARNING] listGameSessions nie zadziałało: ${err.message}`));
-      
-      // Fallback - spróbuj starszej metody jeśli istnieje
-      try {
-        sessions = await cftClient.getGameServerPlayers(serverCfg.CFTOOLS_SERVER_API_ID);
-        console.log(chalk.green(`[SUCCESS] getGameServerPlayers zwróciło ${sessions.length} graczy`));
-      } catch (err2) {
-        console.error(chalk.red(`[FAIL] Obie metody nie zadziałały`));
-        throw new Error('Nie udało się pobrać listy graczy. Sprawdź czy w CFTools Cloud masz włączone "Game Server Monitoring" dla tego serwera.');
-      }
-    }
+    console.log(chalk.green(`[COMMAND] Pobrano ${sessions.length} graczy`));
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff88)
@@ -44,19 +30,21 @@ const execute = async (interaction) => {
       .setDescription(
         sessions.length 
           ? sessions.map((s, i) => `${i + 1}. **${s.playerName || 'Nieznany'}** (${s.id})`).join('\n')
-          : 'Brak graczy online.'
+          : 'Brak graczy online na tym serwerze.'
       )
       .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });
 
+    console.log(chalk.green(`[COMMAND] /admin-player-list wykonana pomyślnie`));
+
   } catch (error) {
-    console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error.message);
+    console.error(chalk.red(`[COMMAND ERROR] /admin-player-list:`), error.message || error);
 
     const errEmbed = new EmbedBuilder()
       .setColor(0xff0000)
       .setTitle('❌ Błąd CFTools API')
-      .setDescription(`**Szczegóły:** ${error.message}`);
+      .setDescription(`**Szczegóły:** ${error.message || 'Nieznany błąd'}`);
 
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ embeds: [errEmbed] }).catch(() => {});
@@ -64,6 +52,7 @@ const execute = async (interaction) => {
   }
 };
 
+// === WAŻNE: poprawna funkcja load ===
 execute.load = (filePath, collection) => {
   const data = new SlashCommandBuilder()
     .setName('admin-player-list')
@@ -78,7 +67,14 @@ execute.load = (filePath, collection) => {
       return option;
     });
 
-  collection.set('admin-player-list', { data, execute, category: 'admin', aliases: [] });
+  collection.set('admin-player-list', { 
+    data, 
+    execute, 
+    category: 'admin', 
+    aliases: [] 
+  });
+
+  console.log(chalk.green(`[LOAD] Załadowano komendę: admin-player-list`));
 };
 
 execute.loadAliases = () => [];
